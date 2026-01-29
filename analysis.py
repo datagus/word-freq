@@ -6,6 +6,7 @@
 #     "pandas==2.3.3",
 # ]
 # ///
+
 import marimo
 
 __generated_with = "0.19.6"
@@ -70,9 +71,9 @@ def _(mo):
 @app.cell
 def _(mo):
     # Display an image from a file path
-    dendogram = mo.image("images/dendogram.jpg")
-    indicators = mo.image("images/indicators.jpg")
-    wordcloud = mo.image("images/wordcloud.jpg")
+    dendogram = mo.image(src="https://raw.githubusercontent.com/datagus/word-freq/main/images/dendogram.jpg")
+    indicators = mo.image(src="https://raw.githubusercontent.com/datagus/word-freq/main/images/indicators.jpg")
+    wordcloud = mo.image(src="https://raw.githubusercontent.com/datagus/word-freq/main/images/wordcloud.jpg")
     return dendogram, indicators, wordcloud
 
 
@@ -91,7 +92,7 @@ def _(dendogram, indicators, mo, wordcloud):
 
 @app.cell
 def _(pd):
-    all_df = pd.read_csv("eurofound.csv")
+    all_df = pd.read_csv("https://raw.githubusercontent.com/datagus/word-freq/main/eurofound.csv")
     all_df["short_id"] = all_df.index + 1
     all_df = all_df.iloc[:,1:]
     #all_df
@@ -100,7 +101,7 @@ def _(pd):
 
 @app.cell
 def _(pd):
-    clus_df = pd.read_csv("eurofound_clust.csv")
+    clus_df = pd.read_csv("https://raw.githubusercontent.com/datagus/word-freq/main/eurofound_clust.csv")
     clus_df["article"] = clus_df["article"].str[:-4].astype(int)
     clus_df = clus_df.rename(columns={"article": "short_id"})
     #clus_df
@@ -119,14 +120,14 @@ def _(all_df, clus_df, pd):
 
 @app.cell
 def _(pd):
-    moritz = pd.read_csv("moritz_good.csv")
+    moritz = pd.read_csv("https://raw.githubusercontent.com/datagus/word-freq/main/moritz_good.csv")
     #moritz
     return (moritz,)
 
 
 @app.cell
 def _(pd):
-    abundance = pd.read_csv("abundance.csv")
+    abundance = pd.read_csv("https://raw.githubusercontent.com/datagus/word-freq/main/abundance.csv")
     abundance.columns.values[0] = "words"
     #abundance
     return (abundance,)
@@ -216,14 +217,14 @@ def _(abundance, final, mo, pd, word_search):
     if word_search.value.strip():
         # Split words by comma and strip whitespace
         search_words = [word.strip().lower() for word in word_search.value.split(",") if word.strip()]
-    
+
         # Filter rows where 'words' column matches any of the search words
         filtered_df = abundance[abundance["words"].str.lower().isin(search_words)]
-    
+
         if not filtered_df.empty:
             # Get columns where at least one value is > 0
             cols_to_keep = ["words"]  # Always keep the words column
-        
+
             for col in abundance.columns[1:]:  # Skip the first column (words)
                 # If multiple words searched, check if ALL words have count > 1
                 if len(search_words) > 1:
@@ -233,7 +234,7 @@ def _(abundance, final, mo, pd, word_search):
                     # For single word, keep if count > 0
                     if (filtered_df[col] > 0).any():
                         cols_to_keep.append(col)
-        
+
             # Subset and transpose
             if len(cols_to_keep) > 1:
                 # Subset and transpose
@@ -244,7 +245,7 @@ def _(abundance, final, mo, pd, word_search):
                 subselected_df = pd.merge(final,xdf, on="short_id", how="inner")
 
                 #mo.md(f"**Found {len(filtered_df)} word(s) with {len(cols_to_keep)-1} documents containing them**")
-        
+
             else:
                 subselected_df = pd.DataFrame()
                 mo.md("**No documents found where all words appear more than once**")
@@ -262,7 +263,7 @@ def _(abundance, final, mo, pd, word_search):
 @app.cell
 def _(alt, search_words, subselected_df, word_search):
     _search_words = [word.strip().lower() for word in word_search.value.split(",") if word.strip()]
-    
+
     # Prepare data for plotting by melting the dataframe
     plot_data = subselected_df[['short_id'] + search_words].melt(
         id_vars=['short_id'],
